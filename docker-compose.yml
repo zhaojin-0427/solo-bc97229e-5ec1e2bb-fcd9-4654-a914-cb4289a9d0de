@@ -1,10 +1,51 @@
 services:
+  demo-site:
+    build: .
+    image: hydro-table-collector:1.0
+    container_name: hydro-demo-site
+    command:
+      - gunicorn
+      - --bind
+      - 0.0.0.0:8080
+      - --workers
+      - "1"
+      - --threads
+      - "8"
+      - --timeout
+      - "60"
+      - app.demo_site:app
+    environment:
+      DEMO_USERNAME: ${DEMO_USERNAME:-hydro}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-hydro-demo-pass}
+      DEMO_SESSION_TTL_SECONDS: ${DEMO_SESSION_TTL_SECONDS:-0}
+    ports:
+      # 可直接浏览演示日报站（登录后可见日报）
+      - "8081:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/login', timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 8s
+
   hydro-collector:
     build: .
     image: hydro-table-collector:1.0
     container_name: hydro-table-collector
     ports:
       - "8000:8000"
+    environment:
+      # 仅这一个配置源会使用表单登录；凭据只来自环境变量
+      HYDRO_LOGIN_URL: http://demo-site:8080/login
+      HYDRO_AUTH_URL: http://demo-site:8080/daily
+      HYDRO_EXPIRE_URL: http://demo-site:8080/expire
+      HYDRO_USERNAME: ${DEMO_USERNAME:-hydro}
+      HYDRO_PASSWORD: ${DEMO_PASSWORD:-hydro-demo-pass}
+      HYDRO_CSRF_FIELD: csrf_token
+    depends_on:
+      demo-site:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=5)"]

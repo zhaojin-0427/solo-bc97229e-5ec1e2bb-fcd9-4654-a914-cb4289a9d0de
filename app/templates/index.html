@@ -12,6 +12,52 @@
   </form>
 </section>
 
+<section class="card auth-card">
+  <h2>登录站点（部署配置）</h2>
+  {% if auth_configured %}
+    <p class="hint">
+      已为配置源 <code>{{ auth_origin_label }}</code> 启用表单登录：
+      抓取时自动 GET 登录页取 CSRF，再 POST 账号、密码与 CSRF 取得会话 Cookie。
+      凭据仅由环境变量提供，Cookie 仅发送给该源（协议 + 主机 + 端口完全一致）。
+    </p>
+    {% if auth_target_url %}
+    <ul class="sample-list">
+      <li>
+        <strong>采集配置站点日报：</strong>使用当前登录会话抓取
+        <code>{{ auth_target_url }}</code>，随后可选择表格并转换。
+        <form action="{{ url_for('fetch') }}" method="post">
+          <input type="hidden" name="url" value="{{ auth_target_url }}">
+          <button type="submit" class="btn primary">采集配置站点日报</button>
+        </form>
+      </li>
+      {% if auth_demo_ready %}
+      <li>
+        <strong>并发采集演示：</strong>先让服务端会话失效，再并发发起 4 次抓取
+        （其中一个请求延迟返回“旧的 401”）。预期只重登 1 次，所有线程复用同一
+        新会话并正确转换。
+        <form action="{{ url_for('demo_concurrent') }}" method="post">
+          <button type="submit" class="btn">运行并发采集演示</button>
+        </form>
+      </li>
+      {% endif %}
+    </ul>
+    {% else %}
+    <p class="hint">
+      已配置登录凭据，但未设置 <code>HYDRO_AUTH_URL</code>，因此不显示站点快捷入口。
+      你也可以在下方直接输入该源内的公示页 URL。
+    </p>
+    {% endif %}
+  {% else %}
+    <p class="hint">
+      当前未配置登录站点。部署时设置
+      <code>HYDRO_LOGIN_URL</code>、<code>HYDRO_USERNAME</code>、
+      <code>HYDRO_PASSWORD</code>（可选 <code>HYDRO_AUTH_URL</code>、
+      <code>HYDRO_EXPIRE_URL</code>）即可为本应用启用一个站点的表单登录。
+      使用 <code>docker compose up --build</code> 启动时会自动连好本地演示日报站。
+    </p>
+  {% endif %}
+</section>
+
 <section class="card">
   <h2>本地示例公示页（离线可演示）</h2>
   <ul class="sample-list">

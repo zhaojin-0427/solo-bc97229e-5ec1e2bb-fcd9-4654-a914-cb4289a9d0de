@@ -114,6 +114,12 @@ h3 { color: #1668a8; margin-bottom: 8px; }
 }
 
 .error-card { border-left: 5px solid #c0392b; }
+.concurrency-card { border-left: 5px solid #1e8449; }
+.concurrency-card h2 { color: #1e8449; }
+.auth-card code, .concurrency-card code {
+  background: #eef3f8; padding: 2px 6px; border-radius: 5px; color: #0f4c81;
+  word-break: break-all;
+}
 .error-box {
   background: #fdecea; border: 1px solid #f5c6c0; border-radius: 8px;
   padding: 14px 16px; margin: 12px 0;

@@ -1,5 +1,26 @@
 {% extends "base.html" %}
 {% block body %}
+{% if concurrency %}
+<section class="card concurrency-card">
+  <h2>并发采集演示通过</h2>
+  <p class="hint">
+    服务端会话已先失效；{{ concurrency.attempts }} 个线程携带同一旧会话并发抓取，
+    其中 1 个请求延迟返回旧 401。所有线程最终都成功，新会话仍保持有效。
+  </p>
+  <div class="stat-row">
+    <div class="stat"><span class="num">{{ concurrency.successes }}/{{ concurrency.attempts }}</span><span class="lbl">并发成功</span></div>
+    <div class="stat"><span class="num">+{{ concurrency.login_delta }}</span><span class="lbl">重登次数（合并后）</span></div>
+    <div class="stat"><span class="num">{{ concurrency.old_generation }} → {{ concurrency.generation }}</span><span class="lbl">会话世代</span></div>
+    <div class="stat"><span class="num">{{ concurrency.elapsed_ms }} ms</span><span class="lbl">总耗时</span></div>
+    <div class="stat"><span class="num">{{ concurrency.distinct_pages }}</span><span class="lbl">不同响应页数</span></div>
+  </div>
+  <p class="hint">
+    合并重登：并发遇到同一过期会话只登录 1 次；迟到的旧 401 发现会话世代已前进，
+    直接复用新会话而不会再次登录、也不会使新会话失效
+    {% if concurrency.delayed_worker_ok %}（延迟旧 401 线程同样成功）{% endif %}。
+  </p>
+</section>
+{% endif %}
 <section class="card">
   <h2>第三步：转换结果预览</h2>
   <p class="hint">
